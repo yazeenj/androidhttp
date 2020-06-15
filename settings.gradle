@@ -1,0 +1,2 @@
+rootProject.name='servhttp'
+include ':app'
