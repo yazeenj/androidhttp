@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -30,12 +31,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Button btn_get,btn_post,btn_put,btn_delete;
     private TextView txt_result;
-    private RequestQueue httpReqQue;
     private ListView list_users;
     private ImageView img_avatar;
     private ArrayAdapter adp;
-    private ArrayList<String> users_data;
+
+    private ArrayList<userModal> users_data;
+
     private final static String SERVER_URL = "https://reqres.in/api/";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,14 +59,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_post.setOnClickListener(this);
         btn_put.setOnClickListener(this);
         btn_delete.setOnClickListener(this);
+        
+        list_users.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-        httpReqQue = Volley.newRequestQueue(this);
+                Toast.makeText(MainActivity.this, "Email: " + users_data.get(position).getAvatar(), Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
     }
 
     private void updateViews() {
         adp = new ArrayAdapter(this, android.R.layout.simple_list_item_1,users_data);
         list_users.setAdapter(adp);
     }
+
 
     @Override
     public void onClick(View v) {
@@ -79,11 +91,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             JSONArray dataObject = response.getJSONArray("data");
                             for(int i=0; i < dataObject.length();i++){
                                 JSONObject userObject = dataObject.getJSONObject(i);
-                                String fullname = userObject.getString("first_name") + " " + userObject.getString("last_name") + " | " + userObject.getString("email");
-                                users_data.add(fullname);
+
+                                userModal tempUser = new userModal(userObject.getInt("id"),
+                                        userObject.getString("email"),
+                                        userObject.getString("first_name"),
+                                        userObject.getString("last_name"),
+                                        userObject.getString("avatar"));
+
+
+                                users_data.add(tempUser);
 
                                 Picasso.get().load(userObject.getString("avatar")).into(img_avatar);
-
                                 updateViews();
                             }
 
@@ -99,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
 
-                httpReqQue.add(myGetReq);
+                VolleyNetwork.getInstance(this.getApplicationContext()).addToRequestQueue(myGetReq);
 
                 break;
             case R.id.btn_post:
@@ -124,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     });
 
-                    httpReqQue.add(myPostReq);
+                    VolleyNetwork.getInstance(this.getApplicationContext()).addToRequestQueue(myPostReq);
 
                 } catch (JSONException e){
                     e.printStackTrace();
@@ -152,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     });
 
-                    httpReqQue.add(myPutReq);
+                    VolleyNetwork.getInstance(this.getApplicationContext()).addToRequestQueue(myPutReq);
                 }
                 catch (JSONException e){
                     e.printStackTrace();
@@ -173,7 +191,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         error.printStackTrace();
                     }
                 });
-                httpReqQue.add(myDeleteReq);
+
+                VolleyNetwork.getInstance(this.getApplicationContext()).addToRequestQueue(myDeleteReq);
                 break;
         }
     }
